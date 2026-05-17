@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HDS Delivery Calculator</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f0f1a;
+      color: white;
+      padding: 20px;
+    }
+
+    .box {
+      max-width: 500px;
+      margin: auto;
+      background: #1b1b2f;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #00ffcc;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #00ffcc;
+    }
+
+    #orderForm {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h2>HDS Delivery Calculator</h2>
+
+  <!-- Pickup -->
+  <select id="pickup">
+    <option>Mingora</option>
+    <option>Saidu Sharif</option>
+    <option>Kalam</option>
+  </select>
+
+  <!-- Dropoff -->
+  <select id="dropoff">
+    <option>Mingora</option>
+    <option>Saidu Sharif</option>
+    <option>Kalam</option>
+  </select>
+
+  <!-- Weight -->
+  <select id="weight">
+    <option value="1">1 kg</option>
+    <option value="2">2 kg</option>
+    <option value="3">3 kg</option>
+    <option value="4">4 kg</option>
+    <option value="5">5 kg</option>
+  </select>
+
+  <button onclick="calculate()">Calculate</button>
+
+  <div class="result" id="result"></div>
+
+  <button id="confirmBtn" style="display:none;" onclick="showForm()">
+    Confirm Order
+  </button>
+
+  <!-- ORDER FORM -->
+  <div id="orderForm">
+
+    <h3>Order Details</h3>
+
+    <input id="sname" placeholder="Sender Name">
+    <input id="sphone" placeholder="Sender Phone">
+    <input id="rname" placeholder="Receiver Name">
+    <input id="rphone" placeholder="Receiver Phone">
+
+    <button onclick="submitOrder()">Submit Order</button>
+
+  </div>
+
+</div>
+
+<script>
+let totalPrice = 0;
+let route = "";
+
+function calculate() {
+
+  let pickup = document.getElementById("pickup").value;
+  let dropoff = document.getElementById("dropoff").value;
+  let weight = document.getElementById("weight").value;
+
+  // Base price (simple logic for now)
+  let base = (pickup === dropoff) ? 50 : 200;
+
+  let weightCost = weight * 100;
+
+  totalPrice = base + weightCost;
+  route = pickup + " → " + dropoff;
+
+  document.getElementById("result").innerText =
+    "Total Price: " + totalPrice + " PKR";
+
+  document.getElementById("confirmBtn").style.display = "block";
+}
+
+function showForm() {
+  document.getElementById("orderForm").style.display = "block";
+}
+
+function submitOrder() {
+
+  let formURL = "https://docs.google.com/forms/d/e/1FAIpQLSchW5ajPRLbZ56E-tsTJvO2yhD1YUSnbqMsfbQRMx77G1tYIg/formResponse";
+
+  let data = new FormData();
+
+  data.append("entry.1553337729", document.getElementById("sname").value);
+  data.append("entry.1532037906", document.getElementById("sphone").value);
+  data.append("entry.1192142703", document.getElementById("rname").value);
+  data.append("entry.749953752", document.getElementById("rphone").value);
+  data.append("entry.1261770845", route);
+  data.append("entry.109221876", totalPrice);
+
+  fetch(formURL, {
+    method: "POST",
+    mode: "no-cors",
+    body: data
+  });
+
+  alert("Order Submitted Successfully!");
+}
+</script>
+
+</body>
+</html>
