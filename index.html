@@ -134,12 +134,12 @@ function submitOrder() {
 
   let data = new FormData();
 
-  data.append("entry.1553337729", document.getElementById("sname").value);
-  data.append("entry.1532037906", document.getElementById("sphone").value);
-  data.append("entry.1192142703", document.getElementById("rname").value);
-  data.append("entry.749953752", document.getElementById("rphone").value);
-  data.append("entry.1261770845", route);
-  data.append("entry.109221876", totalPrice);
+  data.append("entry.1553337729", "TEST NAME");
+  data.append("entry.1532037906", "12345");
+  data.append("entry.1192142703", "TEST RECEIVER");
+  data.append("entry.749953752", "99999");
+  data.append("entry.1261770845", "Mingora → Kalam");
+  data.append("entry.109221876", "500");
 
   fetch(formURL, {
     method: "POST",
@@ -147,7 +147,7 @@ function submitOrder() {
     body: data
   });
 
-  alert("Order Submitted Successfully!");
+  alert("Test sent");
 }
 </script>
 
