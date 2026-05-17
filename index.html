@@ -132,24 +132,23 @@ function submitOrder() {
 
   let formURL = "https://docs.google.com/forms/d/e/1FAIpQLSchW5ajPRLbZ56E-tsTJvO2yhD1YUSnbqMsfbQRMx77G1tYIg/formResponse";
 
-  let data = new FormData();
+  let formData = new URLSearchParams();
 
-  data.append("entry.1553337729", "TEST NAME");
-  data.append("entry.1532037906", "12345");
-  data.append("entry.1192142703", "TEST RECEIVER");
-  data.append("entry.749953752", "99999");
-  data.append("entry.1261770845", "Mingora → Kalam");
-  data.append("entry.109221876", "500");
+  formData.append("entry.1553337729", document.getElementById("sname").value || "test");
+  formData.append("entry.1532037906", document.getElementById("sphone").value || "0");
+  formData.append("entry.1192142703", document.getElementById("rname").value || "test");
+  formData.append("entry.749953752", document.getElementById("rphone").value || "0");
+  formData.append("entry.1261770845", route || "unknown");
+  formData.append("entry.109221876", totalPrice || "0");
 
   fetch(formURL, {
     method: "POST",
     mode: "no-cors",
-    body: data
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: formData
   });
 
-  alert("Test sent");
+  alert("Order submitted");
 }
-</script>
-
-</body>
-</html>
