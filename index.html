@@ -56,25 +56,25 @@
 
 <body>
 
+<!-- Hidden iframe to catch Google Form response (prevents page redirect) -->
+<iframe name="hidden_iframe" style="display:none;"></iframe>
+
 <div class="box">
 
   <h2>HDS Delivery Calculator</h2>
 
-  <!-- Pickup -->
   <select id="pickup">
     <option>Mingora</option>
     <option>Saidu Sharif</option>
     <option>Kalam</option>
   </select>
 
-  <!-- Dropoff -->
   <select id="dropoff">
     <option>Mingora</option>
     <option>Saidu Sharif</option>
     <option>Kalam</option>
   </select>
 
-  <!-- Weight -->
   <select id="weight">
     <option value="1">1 kg</option>
     <option value="2">2 kg</option>
@@ -93,16 +93,12 @@
 
   <!-- ORDER FORM -->
   <div id="orderForm">
-
     <h3>Order Details</h3>
-
-    <input id="sname" placeholder="Sender Name">
+    <input id="sname"  placeholder="Sender Name">
     <input id="sphone" placeholder="Sender Phone" type="tel">
-    <input id="rname" placeholder="Receiver Name">
+    <input id="rname"  placeholder="Receiver Name">
     <input id="rphone" placeholder="Receiver Phone" type="tel">
-
     <button id="submitBtn" onclick="submitOrder()">Submit Order</button>
-
   </div>
 
 </div>
@@ -112,14 +108,14 @@ let totalPrice = 0;
 let route = "";
 
 function calculate() {
-  let pickup = document.getElementById("pickup").value;
+  let pickup  = document.getElementById("pickup").value;
   let dropoff = document.getElementById("dropoff").value;
-  let weight = parseInt(document.getElementById("weight").value);
+  let weight  = parseInt(document.getElementById("weight").value);
 
-  let base = (pickup === dropoff) ? 50 : 200;
+  let base      = (pickup === dropoff) ? 50 : 200;
   let weightCost = weight * 100;
-  totalPrice = base + weightCost;
-  route = pickup + " → " + dropoff;
+  totalPrice    = base + weightCost;
+  route         = pickup + " → " + dropoff;
 
   document.getElementById("result").innerText = "Total Price: " + totalPrice + " PKR";
   document.getElementById("confirmBtn").style.display = "block";
@@ -129,60 +125,67 @@ function showForm() {
   document.getElementById("orderForm").style.display = "block";
 }
 
-async function submitOrder() {
+function submitOrder() {
   let sname  = document.getElementById("sname").value.trim();
   let sphone = document.getElementById("sphone").value.trim();
   let rname  = document.getElementById("rname").value.trim();
   let rphone = document.getElementById("rphone").value.trim();
 
-  // Basic validation
   if (!sname || !sphone || !rname || !rphone) {
     alert("⚠️ Please fill in all fields before submitting.");
     return;
   }
 
   let submitBtn = document.getElementById("submitBtn");
-  submitBtn.disabled = true;
+  submitBtn.disabled  = true;
   submitBtn.innerText = "Submitting...";
 
+  // Build a hidden form and submit it into the hidden iframe
+  // This bypasses the CORS/400 issue with Google Forms
   let formURL = "https://docs.google.com/forms/d/e/1FAIpQLSchW5ajPRLbZ56E-tsTJvO2yhD1YUSnbqMsfbQRMx77G1tYIg/formResponse";
 
-  let formData = new URLSearchParams();
-  formData.append("entry.1553337729", sname);
-  formData.append("entry.1532037906", sphone);
-  formData.append("entry.1192142703", rname);
-  formData.append("entry.749953752",  rphone);
-  formData.append("entry.1261770845", route);
-  formData.append("entry.109221876",  totalPrice);
+  let form = document.createElement("form");
+  form.method = "POST";
+  form.action = formURL;
+  form.target = "hidden_iframe"; // Submit into hidden iframe, not current page
 
-  try {
-    await fetch(formURL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: formData.toString()
-    });
+  let fields = {
+    "entry.1553337729": sname,
+    "entry.1532037906": sphone,
+    "entry.1192142703": rname,
+    "entry.749953752":  rphone,
+    "entry.1261770845": route,
+    "entry.109221876":  totalPrice
+  };
 
-    alert("✅ Order Submitted Successfully!\n\nRoute: " + route + "\nPrice: " + totalPrice + " PKR");
+  for (let name in fields) {
+    let input   = document.createElement("input");
+    input.type  = "hidden";
+    input.name  = name;
+    input.value = fields[name];
+    form.appendChild(input);
+  }
 
-    // Reset form after successful submission
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+
+  // Show success after short delay (form submits in background)
+  setTimeout(function () {
+    alert("✅ Order Submitted!\n\nRoute: " + route + "\nPrice: " + totalPrice + " PKR");
+
+    // Reset everything
     document.getElementById("sname").value  = "";
     document.getElementById("sphone").value = "";
     document.getElementById("rname").value  = "";
     document.getElementById("rphone").value = "";
-    document.getElementById("orderForm").style.display = "none";
+    document.getElementById("orderForm").style.display  = "none";
     document.getElementById("confirmBtn").style.display = "none";
-    document.getElementById("result").innerText = "";
+    document.getElementById("result").innerText         = "";
 
-  } catch (error) {
-    alert("❌ Submission failed. Please check your connection and try again.");
-    console.error("Fetch error:", error);
-  }
-
-  submitBtn.disabled = false;
-  submitBtn.innerText = "Submit Order";
+    submitBtn.disabled  = false;
+    submitBtn.innerText = "Submit Order";
+  }, 1500);
 }
 </script>
 
