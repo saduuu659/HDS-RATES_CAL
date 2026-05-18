@@ -23,6 +23,7 @@
       width: 100%;
       padding: 10px;
       margin: 10px 0;
+      box-sizing: border-box;
     }
 
     button {
@@ -32,6 +33,12 @@
       border: none;
       font-weight: bold;
       cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
     }
 
     .result {
@@ -90,11 +97,11 @@
     <h3>Order Details</h3>
 
     <input id="sname" placeholder="Sender Name">
-    <input id="sphone" placeholder="Sender Phone">
+    <input id="sphone" placeholder="Sender Phone" type="tel">
     <input id="rname" placeholder="Receiver Name">
-    <input id="rphone" placeholder="Receiver Phone">
+    <input id="rphone" placeholder="Receiver Phone" type="tel">
 
-    <button onclick="submitOrder()">Submit Order</button>
+    <button id="submitBtn" onclick="submitOrder()">Submit Order</button>
 
   </div>
 
@@ -105,22 +112,16 @@ let totalPrice = 0;
 let route = "";
 
 function calculate() {
-
   let pickup = document.getElementById("pickup").value;
   let dropoff = document.getElementById("dropoff").value;
-  let weight = document.getElementById("weight").value;
+  let weight = parseInt(document.getElementById("weight").value);
 
-  // Base price (simple logic for now)
   let base = (pickup === dropoff) ? 50 : 200;
-
   let weightCost = weight * 100;
-
   totalPrice = base + weightCost;
   route = pickup + " → " + dropoff;
 
-  document.getElementById("result").innerText =
-    "Total Price: " + totalPrice + " PKR";
-
+  document.getElementById("result").innerText = "Total Price: " + totalPrice + " PKR";
   document.getElementById("confirmBtn").style.display = "block";
 }
 
@@ -128,30 +129,60 @@ function showForm() {
   document.getElementById("orderForm").style.display = "block";
 }
 
-function submitOrder() {
+async function submitOrder() {
+  let sname  = document.getElementById("sname").value.trim();
+  let sphone = document.getElementById("sphone").value.trim();
+  let rname  = document.getElementById("rname").value.trim();
+  let rphone = document.getElementById("rphone").value.trim();
+
+  // Basic validation
+  if (!sname || !sphone || !rname || !rphone) {
+    alert("⚠️ Please fill in all fields before submitting.");
+    return;
+  }
+
+  let submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Submitting...";
 
   let formURL = "https://docs.google.com/forms/d/e/1FAIpQLSchW5ajPRLbZ56E-tsTJvO2yhD1YUSnbqMsfbQRMx77G1tYIg/formResponse";
 
   let formData = new URLSearchParams();
+  formData.append("entry.1553337729", sname);
+  formData.append("entry.1532037906", sphone);
+  formData.append("entry.1192142703", rname);
+  formData.append("entry.749953752",  rphone);
+  formData.append("entry.1261770845", route);
+  formData.append("entry.109221876",  totalPrice);
 
-  formData.append("entry.1553337729", document.getElementById("sname").value || "test");
-  formData.append("entry.1532037906", document.getElementById("sphone").value || "0");
-  formData.append("entry.1192142703", document.getElementById("rname").value || "test");
-  formData.append("entry.749953752", document.getElementById("rphone").value || "0");
-  formData.append("entry.1261770845", route || "unknown");
-  formData.append("entry.109221876", totalPrice || "0");
+  try {
+    await fetch(formURL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: formData.toString()
+    });
 
-  fetch(formURL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: formData
-  });
+    alert("✅ Order Submitted Successfully!\n\nRoute: " + route + "\nPrice: " + totalPrice + " PKR");
 
-  
-alert("Order Submitted Successfully!");
+    // Reset form after successful submission
+    document.getElementById("sname").value  = "";
+    document.getElementById("sphone").value = "";
+    document.getElementById("rname").value  = "";
+    document.getElementById("rphone").value = "";
+    document.getElementById("orderForm").style.display = "none";
+    document.getElementById("confirmBtn").style.display = "none";
+    document.getElementById("result").innerText = "";
+
+  } catch (error) {
+    alert("❌ Submission failed. Please check your connection and try again.");
+    console.error("Fetch error:", error);
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.innerText = "Submit Order";
 }
 </script>
 
